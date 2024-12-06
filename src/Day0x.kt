@@ -8,6 +8,10 @@ fun main() {
     }
 
     val input = readInput("Day0x")
+    val testInput = readInput("Day0x_test")
+
+    check(testInput.size == part1(testInput))
     part1(input).println()
+    check(testInput.size == part2(testInput))
     part2(input).println()
 }
