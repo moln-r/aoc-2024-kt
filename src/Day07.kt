@@ -4,14 +4,14 @@ fun main() {
     fun part1(input: List<String>): Long {
         return input.map { CalEq.from(it) }
             .toList()
-            .filter { it.possibleResultsPart1().contains(it.result) }
+            .filter { it.possibleResults(2).contains(it.result) }
             .sumOf { it.result }
     }
 
     fun part2(input: List<String>): Long {
         return input.map { CalEq.from(it) }
             .toList()
-            .filter { it.possibleResultsPart2().contains(it.result) }
+            .filter { it.possibleResults(3).contains(it.result) }
             .sumOf { it.result }
     }
 
@@ -41,13 +41,13 @@ data class CalEq(val result: Long, val numbers: List<Long>) {
         }
     }
 
-    fun possibleResultsPart1(): List<Long> {
+    fun possibleResults(numberOfOperations: Int): List<Long> {
         val bitSize = numbers.size - 1
 
         val results = mutableListOf<Long>()
-        for (operationCombination in 0..<2.0.pow(bitSize).toInt()) {
-            val binary = operationCombination.toString(radix = 2).padStart(bitSize, '0')
-            val operations = binary.map { if (it == '1') Operation.ADD else Operation.MUL }
+        for (combination in 0..<numberOfOperations.toDouble().pow(bitSize).toInt()) {
+            val operationCode = combination.toString(numberOfOperations).padStart(bitSize, '0')
+            val operations = operationCode.map { Operation.from(it) }
 
             var calculation = numbers[0]
             for ((i, operation) in operations.withIndex()) {
@@ -55,39 +55,6 @@ data class CalEq(val result: Long, val numbers: List<Long>) {
             }
             results.add(calculation)
         }
-
-        return results
-    }
-
-    fun possibleResultsPart2(): List<Long> {
-        val bitSize = numbers.size - 1
-
-        val results = mutableListOf<Long>()
-        for (operationCombination in 0..<3.0.pow(bitSize).toInt()) {
-            val ternary = operationCombination.toString(radix = 3).padStart(bitSize, '0')
-            val operations = ternary.map {
-                when (it) {
-                    '1' -> {
-                        Operation.ADD
-                    }
-
-                    '2' -> {
-                        Operation.MUL
-                    }
-
-                    else -> {
-                        Operation.CON
-                    }
-                }
-            }
-
-            var calculation = numbers[0]
-            for ((i, operation) in operations.withIndex()) {
-                calculation = operation.fn(calculation, numbers[i + 1])
-            }
-            results.add(calculation)
-        }
-
         return results
     }
 }
@@ -95,5 +62,16 @@ data class CalEq(val result: Long, val numbers: List<Long>) {
 enum class Operation(val fn: (Long, Long) -> Long) {
     ADD({ a, b -> a + b }),
     MUL({ a, b -> a * b }),
-    CON({ a, b -> ("" + a + b).toLong() })
+    CON({ a, b -> ("" + a + b).toLong() }),
+    ;
+
+    companion object {
+        fun from(input: Char): Operation {
+            return when (input) {
+                '0' -> ADD
+                '1' -> MUL
+                else -> CON
+            }
+        }
+    }
 }
