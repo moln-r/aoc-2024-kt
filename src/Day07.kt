@@ -2,14 +2,17 @@ import kotlin.math.pow
 
 fun main() {
     fun part1(input: List<String>): Long {
-        val equations = input.map { CalEq.from(it) }.toList()
-
-        return equations.filter { it.possibleResults().contains(it.result) }
+        return input.map { CalEq.from(it) }
+            .toList()
+            .filter { it.possibleResultsPart1().contains(it.result) }
             .sumOf { it.result }
     }
 
-    fun part2(input: List<String>): Int {
-        return input.size
+    fun part2(input: List<String>): Long {
+        return input.map { CalEq.from(it) }
+            .toList()
+            .filter { it.possibleResultsPart2().contains(it.result) }
+            .sumOf { it.result }
     }
 
     val input = readInput("Day07")
@@ -18,8 +21,10 @@ fun main() {
     val part1TestResult = part1(testInput)
     check(3749L == part1TestResult, { "Part 1 test run failed with value $part1TestResult" })
     part1(input).println()
-//    check(testInput.size == part2(testInput))
-//    part2(input).println()
+
+    val part2TestResult = part2(testInput)
+    check(11387L == part2TestResult, { "Part 2 test run failed with value $part2TestResult" })
+    part2(input).println()
 }
 
 data class CalEq(val result: Long, val numbers: List<Long>) {
@@ -36,7 +41,7 @@ data class CalEq(val result: Long, val numbers: List<Long>) {
         }
     }
 
-    fun possibleResults(): List<Long> {
+    fun possibleResultsPart1(): List<Long> {
         val bitSize = numbers.size - 1
 
         val results = mutableListOf<Long>()
@@ -54,9 +59,41 @@ data class CalEq(val result: Long, val numbers: List<Long>) {
         return results
     }
 
+    fun possibleResultsPart2(): List<Long> {
+        val bitSize = numbers.size - 1
+
+        val results = mutableListOf<Long>()
+        for (operationCombination in 0..<3.0.pow(bitSize).toInt()) {
+            val ternary = operationCombination.toString(radix = 3).padStart(bitSize, '0')
+            val operations = ternary.map {
+                when (it) {
+                    '1' -> {
+                        Operation.ADD
+                    }
+
+                    '2' -> {
+                        Operation.MUL
+                    }
+
+                    else -> {
+                        Operation.CON
+                    }
+                }
+            }
+
+            var calculation = numbers[0]
+            for ((i, operation) in operations.withIndex()) {
+                calculation = operation.fn(calculation, numbers[i + 1])
+            }
+            results.add(calculation)
+        }
+
+        return results
+    }
 }
 
 enum class Operation(val fn: (Long, Long) -> Long) {
     ADD({ a, b -> a + b }),
     MUL({ a, b -> a * b }),
+    CON({ a, b -> ("" + a + b).toLong() })
 }
