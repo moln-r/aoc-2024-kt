@@ -94,7 +94,7 @@ fun main() {
     part2(input).println()
 }
 
-enum class Direction() {
+private enum class Direction() {
     UP,
     DOWN,
     RIGHT,
